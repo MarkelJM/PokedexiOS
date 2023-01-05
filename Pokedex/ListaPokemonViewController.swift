@@ -15,6 +15,7 @@ class ListaPokemonViewController: UIViewController, UITableViewDelegate, UITable
     
     var pokemonManager = PokemonManager()
     
+    var pokemons: [Pokemon] = []
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -30,24 +31,42 @@ class ListaPokemonViewController: UIViewController, UITableViewDelegate, UITable
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 15
+        return pokemons.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tablaPokemon.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! CellPokemonTableViewCell
-        cell.namePokemon.text = "Pikachu"
-        cell.attackPokemon.text = "80"
-        cell.defensePokemon.text = "80"
+        cell.namePokemon.text = pokemons[indexPath.row ].name
+        cell.attackPokemon.text = "Attack: \(pokemons[indexPath.row].attack)"
+        cell.defensePokemon.text = "Defense: \(pokemons[indexPath.row].defense)"
         //cell.imagePokemon.image = UIImage(named: "bulbasaur")
         
         //FALTA AÑADIR LA IMAGEN --> ESTA INFORMACION ES ESTATICA Y NO DE LA API
+        if let urlString = pokemons[indexPath.row].imageUrl as? String{
+            /* si tenemos una imagen debemos crear un objeto de imagen (lo de abajo)*/
+            if let imageURL = URL(string: urlString){
+                DispatchQueue.global().async {
+                    guard let imageData = try? Data(contentsOf: imageURL) else {
+                        return}
+                    let image = UIImage(data: imageData)
+                    DispatchQueue.main.async {
+                        cell.imagePokemon.image = image
+                    }
+                }
+            }
+        }
         return cell
     }
     
 }
-
+/* metodo para llenar la app con informacion de la API*/
 extension ListaPokemonViewController: pokemonManagerDelegado{
     func mostrarListaPokemon(lista: [Pokemon]) {
+        pokemons = lista
+        
+        DispatchQueue.main.async {
+            self.tablaPokemon.reloadData()
+        }
     
     }
     
